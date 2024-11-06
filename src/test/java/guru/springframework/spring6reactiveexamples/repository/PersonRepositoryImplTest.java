@@ -4,6 +4,7 @@ import guru.springframework.spring6reactiveexamples.model.Person;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -22,6 +23,49 @@ class PersonRepositoryImplTest {
         
         assertNotNull(person);
         assertEquals(1, person.getId());
+    }
+
+    @Test
+    void testMonoFindByIdBlockingWithId3() {
+        Mono<Person> personMono = personRepository.findById(3);
+
+        Person person = personMono.block();
+
+        assertNotNull(person);
+        assertEquals(3, person.getId());
+    }
+
+    @Test
+    void testMonoFindByIdWithId3WithStepVerifier() {
+        Mono<Person> personMono = personRepository.findById(3);
+
+        StepVerifier.create(personMono).expectNextCount(1).verifyComplete();
+
+        personMono.subscribe(person -> {
+            assertNotNull(person);
+            assertEquals(3, person.getId());
+        });
+    }
+
+    @Test
+    void testMonoFindByIdBlockingWithId8NotFound() {
+        Mono<Person> personMono = personRepository.findById(8);
+
+        Person person = personMono.block();
+
+        assertNull(person);
+    }
+
+    @Test
+    void testMonoFindByIdWithId8WithStepVerifier() {
+        Mono<Person> personMono = personRepository.findById(8);
+
+        StepVerifier.create(personMono).expectNextCount(0).verifyComplete();
+
+        personMono.subscribe(person -> {
+            System.out.println(person);
+            assertNull(person);
+        });
     }
 
     @Test
