@@ -1,9 +1,12 @@
 spring:
   application:
     name: spring-6-reactive-examples
+    
   docker:
     compose:
       enabled: false
+      stop:
+        command: down
 
 management:
   health:
