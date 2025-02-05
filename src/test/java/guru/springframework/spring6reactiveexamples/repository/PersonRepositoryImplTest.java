@@ -1,6 +1,7 @@
 package guru.springframework.spring6reactiveexamples.repository;
 
 import guru.springframework.spring6reactiveexamples.model.Person;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -8,9 +9,11 @@ import reactor.test.StepVerifier;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Slf4j
 class PersonRepositoryImplTest {
     
     PersonRepository personRepository = new PersonRepositoryImpl();
@@ -82,9 +85,7 @@ class PersonRepositoryImplTest {
     void testMonoFindByIdSubscriberWithMapOperation() {
         Mono<Person> personMono = personRepository.findById(1);
 
-        personMono.map(person -> {
-            return person.getFirstName();
-        }).subscribe(firstName -> {
+        personMono.map(Person::getFirstName).subscribe(firstName -> {
             assertNotNull(firstName);
             assertEquals("Michael", firstName);
         });
@@ -105,9 +106,9 @@ class PersonRepositoryImplTest {
         Flux<Person> personFlux = personRepository.findAll();
 
         personFlux.subscribe(person -> {
-            System.out.println(person);
-            //assertNotNull(person);
-            //assertEquals(1, person.getId());
+            log.info("Person: {}", person);
+            assertNotNull(person);
+            assertEquals(1, person.getId());
         });
     }
 
@@ -117,16 +118,12 @@ class PersonRepositoryImplTest {
         
         final Integer id = 8;
         
-        Mono<Person> personMono = personFlux.filter(person -> 
-            person.getId() == id).single()
-            .doOnError(throwable -> {
-                System.out.println("1 an error occured" + throwable);
-            });
+        Mono<Person> personMono = personFlux.filter(person ->
+                Objects.equals(person.getId(), id)).single()
+            .doOnError(throwable -> log.error("1 an error occured: " + throwable, throwable));
 
-        personMono.subscribe(person -> {
-            System.out.println(person);
-        }, throwable -> {
-            System.out.println("2 an error occured" + throwable);
+        personMono.subscribe(person -> log.info("Person: {}", person), throwable -> {
+            log.error("2 an error occured" + throwable, throwable);
             assertInstanceOf(NoSuchElementException.class, throwable);
         });
     }
@@ -135,12 +132,10 @@ class PersonRepositoryImplTest {
     void testFluxFindAllSubscriberWithMapOperation() {
         Flux<Person> personFlux = personRepository.findAll();
 
-        personFlux.map(person -> {
-            return person.getFirstName();
-        }).subscribe(firstName -> {
-            System.out.println(firstName);
-            //assertNotNull(firstName);
-            //assertEquals("Michael", firstName);
+        personFlux.map(Person::getFirstName).subscribe(firstName -> {
+            log.info("First Name: {}", firstName);
+            assertNotNull(firstName);
+            assertEquals("Michael", firstName);
         });
     }
 
@@ -152,7 +147,7 @@ class PersonRepositoryImplTest {
 
         personListMono.subscribe(personList -> {
             assertEquals(4, personList.size());
-            personList.forEach(person -> { System.out.println(person); });
+            personList.forEach(person -> log.info("Person: {}", person));
         });
     }
     
