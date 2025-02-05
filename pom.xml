@@ -35,6 +35,7 @@
         <logstash-logback.version>8.0</logstash-logback.version>
 
         <!-- Sonar -->
+        <sonar-maven-plugin.version>5.0.0.4389</sonar-maven-plugin.version>
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
         <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
         <sonar.language>java</sonar.language>
@@ -176,6 +177,11 @@
                         </archive>
                     </configuration>
                 </plugin>
+                <plugin>
+                    <groupId>org.sonarsource.scanner.maven</groupId>
+                    <artifactId>sonar-maven-plugin</artifactId>
+                    <version>${sonar-maven-plugin.version}</version>
+                </plugin>
             </plugins>
         </pluginManagement>
         
@@ -246,7 +252,6 @@
                                 <javaVersion>${java.version}</javaVersion>
                                 <javaVendor>${java.vendor}</javaVendor>
                                 <commit-id>${buildNumber}</commit-id>
-                                <!--<docker-repository>${docker.push.repository}/${docker.image.prefix}/${project.artifactId}</docker-repository>-->
                             </additionalProperties>
                         </configuration>
                     </execution>
