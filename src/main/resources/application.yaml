@@ -42,4 +42,25 @@ logbook:
       - password
   predicate:
     exclude:
-      - path: /actuator/health
+      - path: /actuator/health/**
+      # this is a workaround to fix logbook bug when log level is set on trace
+      - path: /authors
+      - path: /books
+      # Exclude HTML-related calls and web resources
+      - path: /**/*.html
+      - path: /**/*.css
+      - path: /**/*.js
+      - path: /**/*.png
+      - path: /**/*.jpg
+      - path: /**/*.jpeg
+      - path: /**/*.gif
+      - path: /**/*.ico
+      - path: /**/favicon.ico
+      - path: /**/webjars/**
+      # Exclude other common web resources
+      - path: /**/assets/**
+      - path: /**/static/**
+      - path: /**/public/**
+      - path: /**/resources/**
+      - path: /webjars/**
+        # Add more exclusions as needed
