@@ -9,7 +9,7 @@ mvn clean install -DskipTests
 
 ### Deployment with Helm
 
-Be aware that we are using a different namespace here (not default).
+Be aware that we are using a different namespace here (not default)
 
 Go to the directory where the tgz file has been created after 'mvn install'
 ```powershell
