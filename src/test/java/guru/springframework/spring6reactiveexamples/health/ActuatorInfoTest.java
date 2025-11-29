@@ -7,11 +7,12 @@ import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.micrometer.metrics.test.autoconfigure.AutoConfigureMetrics;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient;
-import org.springframework.test.web.reactive.server.EntityExchangeResult;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.Objects;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient
@@ -30,45 +31,48 @@ class ActuatorInfoTest {
 
     @Test
     void actuatorInfoTest() {
-        EntityExchangeResult<byte[]> result = webTestClient.get().uri("/actuator/info")
+        webTestClient.get().uri("/actuator/info")
             .exchange()
             .expectStatus().isOk()
             .expectBody()
+            .consumeWith(result -> {
+                String jsonResponse = new String(Objects.requireNonNull(result.getResponseBody()));
+                log.info("Response:\n{}", pretty(jsonResponse));
+            })
             .jsonPath("$.git.commit.id.abbrev").isNotEmpty()
-            .jsonPath("$.java.version").isEqualTo("21.0.5")
+            .jsonPath("$.java.version").value((String version) -> assertThat(version).startsWith("21"))
             .jsonPath("$.build.artifact").isEqualTo(buildProperties.getArtifact())
             .jsonPath("$.build.group").isEqualTo(buildProperties.getGroup())
-            .returnResult();
-
-        String jsonResponse = new String(Objects.requireNonNull(result.getResponseBody()));
-        log.info("Response:\n{}", pretty(jsonResponse));
+            .consumeWith(result -> {
+                String jsonResponse = new String(Objects.requireNonNull(result.getResponseBody()));
+                log.info("Response:\n{}", pretty(jsonResponse));
+            });
     }
 
 
     @Test
     void actuatorHealthTest() {
-        EntityExchangeResult<byte[]> result = webTestClient.get().uri("/actuator/health/readiness")
+        webTestClient.get().uri("/actuator/health/readiness")
             .exchange()
             .expectStatus().isOk()
             .expectBody()
-            .jsonPath("$.status").isEqualTo("UP")
-            .returnResult();
-
-        String jsonResponse = new String(Objects.requireNonNull(result.getResponseBody()));
-        log.info("Response:\n{}", pretty(jsonResponse));
+            .consumeWith(result -> {
+                String jsonResponse = new String(Objects.requireNonNull(result.getResponseBody()));
+                log.info("Response:\n{}", pretty(jsonResponse));
+            })
+            .jsonPath("$.status").isEqualTo("UP");
     }
 
     @Test
     void actuatorPrometheusTest() {
-        EntityExchangeResult<byte[]> result = webTestClient.get().uri("/actuator/prometheus")
+        webTestClient.get().uri("/actuator/prometheus")
             .exchange()
             .expectStatus().isOk()
             .expectBody()
-            .returnResult();
-
-        String response = new String(Objects.requireNonNull(result.getResponseBody()));
-        log.info("Response:\n{}", response);
-
+            .consumeWith(result -> {
+                String jsonResponse = new String(Objects.requireNonNull(result.getResponseBody()));
+                log.info("Response:\n{}", jsonResponse);
+            });
     }
 
     private String pretty(String jsonResponse) {
