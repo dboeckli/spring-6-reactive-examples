@@ -1,13 +1,13 @@
 package guru.springframework.spring6reactiveexamples.repository;
 
 import guru.springframework.spring6reactiveexamples.model.Person;
+import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+@Repository
 public class PersonRepositoryImpl implements PersonRepository {
-    
 
-    
     Person michael = Person.builder()
         .id(1)
         .firstName("Michael")
