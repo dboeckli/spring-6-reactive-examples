@@ -1,0 +1,3 @@
+### get persons
+GET http://localhost:{{application-port}}/persons
+Accept: application/json
