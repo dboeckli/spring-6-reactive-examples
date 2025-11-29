@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @AutoConfigureWebTestClient
 @AutoConfigureMetrics
 @Slf4j
-class ActuatorInfoTest {
+class ActuatorInfoIT {
 
     @Autowired
     ObjectMapper objectMapper;

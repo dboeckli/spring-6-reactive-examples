@@ -1,7 +1,12 @@
 spring:
   application:
     name: spring-6-reactive-examples
-    
+  reactor:
+    # To ensure that the trace ID and span ID appear in the logs (MDC) of a WebFlux application,
+    # Reactor context propagation must be enabled. WebFlux stores these values in the Reactor Context,
+    # but logging frameworks like Logback expect them in the ThreadLocal-based MDC.
+    context-propagation: auto
+
   docker:
     compose:
       enabled: false

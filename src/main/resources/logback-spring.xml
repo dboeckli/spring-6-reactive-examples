@@ -20,7 +20,7 @@
     </appender>
 
     <root level="INFO">
-        <appender-ref ref="CONSOLE" />
-        <appender-ref ref="jsonConsoleAppender" />
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="jsonConsoleAppender"/>
     </root>
 </configuration>

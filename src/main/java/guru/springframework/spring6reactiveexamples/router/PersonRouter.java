@@ -23,12 +23,14 @@ public class PersonRouter {
     private final PersonRepository personRepository;
 
     @Bean
-    public RouterFunction<ServerResponse> routePerson(PersonRepository personRepository) {
-        log.info("routePerson called");
+    public RouterFunction<ServerResponse> routePerson() {
         return route(GET("/persons").and(accept(MediaType.APPLICATION_JSON)),
-            request -> ok()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(personRepository.findAll(), Person.class));
+            request -> {
+                log.info("routePerson called");
+                return ok()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(personRepository.findAll(), Person.class);
+            });
     }
 
 }

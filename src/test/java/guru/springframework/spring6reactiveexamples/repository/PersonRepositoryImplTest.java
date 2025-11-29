@@ -15,15 +15,15 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @Slf4j
 class PersonRepositoryImplTest {
-    
+
     PersonRepository personRepository = new PersonRepositoryImpl();
 
     @Test
     void testMonoFindByIdBlocking() {
         Mono<Person> personMono = personRepository.findById(1);
-        
+
         Person person = personMono.block();
-        
+
         assertNotNull(person);
         assertEquals(1, person.getId());
     }
@@ -66,7 +66,7 @@ class PersonRepositoryImplTest {
         StepVerifier.create(personMono).expectNextCount(0).verifyComplete();
 
         personMono.subscribe(person -> {
-            System.out.println(person);
+            log.info("Person: {}", person);
             assertNull(person);
         });
     }
@@ -94,7 +94,7 @@ class PersonRepositoryImplTest {
     @Test
     void testFluxFindAllBlockingFirst() {
         Flux<Person> personFlux = personRepository.findAll();
-        
+
         Person person = personFlux.blockFirst();
 
         assertNotNull(person);
@@ -115,9 +115,9 @@ class PersonRepositoryImplTest {
     @Test
     void testFluxFindAllSubscriberNotFound() {
         Flux<Person> personFlux = personRepository.findAll();
-        
+
         final Integer id = 8;
-        
+
         Mono<Person> personMono = personFlux.filter(person ->
                 Objects.equals(person.getId(), id)).single()
             .doOnError(throwable -> log.error("1 an error occured: " + throwable, throwable));
@@ -142,7 +142,7 @@ class PersonRepositoryImplTest {
     @Test
     void testFluxFindAllSubscriberWithListOperation() {
         Flux<Person> personFlux = personRepository.findAll();
-        
+
         Mono<List<Person>> personListMono = personFlux.collectList();
 
         personListMono.subscribe(personList -> {
@@ -150,13 +150,13 @@ class PersonRepositoryImplTest {
             personList.forEach(person -> log.info("Person: {}", person));
         });
     }
-    
+
     @Test
     void testfindAllFilterOnName() {
         personRepository.findAll()
-            .filter(person -> person.getFirstName().equals("Fiona"))  
+            .filter(person -> person.getFirstName().equals("Fiona"))
             .subscribe(person -> {
-                System.out.println(person);
+                log.info("Person: {}", person);
                 assertEquals("Fiona", person.getFirstName());
             });
     }
@@ -168,7 +168,7 @@ class PersonRepositoryImplTest {
             .next();
 
         fionaMono.subscribe(person -> {
-            System.out.println(person);
+            log.info("Person: {}", person);
             assertEquals("Fiona", person.getFirstName());
         });
     }
