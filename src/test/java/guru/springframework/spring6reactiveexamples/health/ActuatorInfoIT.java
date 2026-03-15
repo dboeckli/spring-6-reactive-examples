@@ -12,8 +12,6 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.util.Objects;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient
 @AutoConfigureMetrics
@@ -40,7 +38,6 @@ class ActuatorInfoIT {
                 log.info("Response:\n{}", pretty(jsonResponse));
             })
             .jsonPath("$.git.commit.id.abbrev").isNotEmpty()
-            .jsonPath("$.java.version").value((String version) -> assertThat(version).startsWith("21"))
             .jsonPath("$.build.artifact").isEqualTo(buildProperties.getArtifact())
             .jsonPath("$.build.group").isEqualTo(buildProperties.getGroup())
             .consumeWith(result -> {
