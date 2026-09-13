@@ -20,17 +20,14 @@ import static org.springframework.web.reactive.function.server.ServerResponse.ok
 @Slf4j
 public class PersonRouter {
 
-    private final PersonRepository personRepository;
+	private final PersonRepository personRepository;
 
-    @Bean
-    public RouterFunction<ServerResponse> routePerson() {
-        return route(GET("/persons").and(accept(MediaType.APPLICATION_JSON)),
-            request -> {
-                log.info("routePerson called");
-                return ok()
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(personRepository.findAll(), Person.class);
-            });
-    }
+	@Bean
+	public RouterFunction<ServerResponse> routePerson() {
+		return route(GET("/persons").and(accept(MediaType.APPLICATION_JSON)), request -> {
+			log.info("routePerson called");
+			return ok().contentType(MediaType.APPLICATION_JSON).body(personRepository.findAll(), Person.class);
+		});
+	}
 
 }
