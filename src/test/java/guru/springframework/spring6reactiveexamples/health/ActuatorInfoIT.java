@@ -18,68 +18,72 @@ import java.util.Objects;
 @Slf4j
 class ActuatorInfoIT {
 
-    @Autowired
-    ObjectMapper objectMapper;
+	@Autowired
+	ObjectMapper objectMapper;
 
-    @Autowired
-    BuildProperties buildProperties;
+	@Autowired
+	BuildProperties buildProperties;
 
-    @Autowired
-    WebTestClient webTestClient;
+	@Autowired
+	WebTestClient webTestClient;
 
-    @Test
-    void actuatorInfoTest() {
-        webTestClient.get().uri("/actuator/info")
-            .exchange()
-            .expectStatus().isOk()
-            .expectBody()
-            .consumeWith(result -> {
-                String jsonResponse = new String(Objects.requireNonNull(result.getResponseBody()));
-                log.info("Response:\n{}", pretty(jsonResponse));
-            })
-            .jsonPath("$.git.commit.id.abbrev").isNotEmpty()
-            .jsonPath("$.build.artifact").isEqualTo(buildProperties.getArtifact())
-            .jsonPath("$.build.group").isEqualTo(buildProperties.getGroup())
-            .consumeWith(result -> {
-                String jsonResponse = new String(Objects.requireNonNull(result.getResponseBody()));
-                log.info("Response:\n{}", pretty(jsonResponse));
-            });
-    }
+	@Test
+	void actuatorInfoTest() {
+		webTestClient.get().uri("/actuator/info").exchange().expectStatus().isOk().expectBody().consumeWith(result -> {
+			String jsonResponse = new String(Objects.requireNonNull(result.getResponseBody()));
+			log.info("Response:\n{}", pretty(jsonResponse));
+		})
+			.jsonPath("$.git.commit.id.abbrev")
+			.isNotEmpty()
+			.jsonPath("$.build.artifact")
+			.isEqualTo(buildProperties.getArtifact())
+			.jsonPath("$.build.group")
+			.isEqualTo(buildProperties.getGroup())
+			.consumeWith(result -> {
+				String jsonResponse = new String(Objects.requireNonNull(result.getResponseBody()));
+				log.info("Response:\n{}", pretty(jsonResponse));
+			});
+	}
 
+	@Test
+	void actuatorHealthTest() {
+		webTestClient.get()
+			.uri("/actuator/health/readiness")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody()
+			.consumeWith(result -> {
+				String jsonResponse = new String(Objects.requireNonNull(result.getResponseBody()));
+				log.info("Response:\n{}", pretty(jsonResponse));
+			})
+			.jsonPath("$.status")
+			.isEqualTo("UP");
+	}
 
-    @Test
-    void actuatorHealthTest() {
-        webTestClient.get().uri("/actuator/health/readiness")
-            .exchange()
-            .expectStatus().isOk()
-            .expectBody()
-            .consumeWith(result -> {
-                String jsonResponse = new String(Objects.requireNonNull(result.getResponseBody()));
-                log.info("Response:\n{}", pretty(jsonResponse));
-            })
-            .jsonPath("$.status").isEqualTo("UP");
-    }
+	@Test
+	void actuatorPrometheusTest() {
+		webTestClient.get()
+			.uri("/actuator/prometheus")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody()
+			.consumeWith(result -> {
+				String jsonResponse = new String(Objects.requireNonNull(result.getResponseBody()));
+				log.info("Response:\n{}", jsonResponse);
+			});
+	}
 
-    @Test
-    void actuatorPrometheusTest() {
-        webTestClient.get().uri("/actuator/prometheus")
-            .exchange()
-            .expectStatus().isOk()
-            .expectBody()
-            .consumeWith(result -> {
-                String jsonResponse = new String(Objects.requireNonNull(result.getResponseBody()));
-                log.info("Response:\n{}", jsonResponse);
-            });
-    }
-
-    private String pretty(String jsonResponse) {
-        try {
-            Object json = objectMapper.readValue(jsonResponse, Object.class);
-            return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(json);
-        } catch (Exception e) {
-            // Falls kein valides JSON: unverändert zurückgeben
-            return jsonResponse;
-        }
-    }
+	private String pretty(String jsonResponse) {
+		try {
+			Object json = objectMapper.readValue(jsonResponse, Object.class);
+			return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(json);
+		}
+		catch (Exception e) {
+			// Falls kein valides JSON: unverändert zurückgeben
+			return jsonResponse;
+		}
+	}
 
 }

@@ -50,6 +50,8 @@ management:
       enabled: true
       include: request_headers, response_headers, session_id, time_taken
   observations:
+    annotations:
+      enabled: true
     http:
       server:
         requests:
@@ -62,9 +64,28 @@ management:
       export:
         enabled: false
   tracing:
+    propagation:
+      type: w3c
+      produce: w3c
+      consume: w3c
+    baggage:
+      enabled: true
+      # Specify which baggage fields should be propagated to downstream services
+      correlation:
+        # Also make baggage available in MDC for logging
+        fields:
+          - testBaggage
+        enabled: true
+      # Allows receiving the header "baggage: testBaggage=..." set in the http request
+      remote-fields:
+        - testBaggage
+      # Copies the value from the baggage into the span labels (attributes)
+      tag-fields:
+        - testBaggage
     export:
       otlp:
         enabled: false
+      enabled: true
     sampling:
       probability: 1.0
   logging:
@@ -76,3 +97,7 @@ management:
     metrics:
       export:
         enabled: false
+
+logging:
+  level:
+    guru.springframework.spring6reactiveexamples.config.RequestLoggingWebFilter: DEBUG
