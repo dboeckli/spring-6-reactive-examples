@@ -1,4 +1,70 @@
-# spring-6-reactive-examples
+# Spring Framework 6: Beginner to Guru — Spring 6 Reactive Examples
+
+Spring Boot 4 / Spring Framework 6 **WebFlux** example application. Exposes a small reactive `Person`
+API via a functional `RouterFunction`, backed by an in-memory repository, with Actuator/Prometheus
+metrics and OpenTelemetry tracing.
+
+## Architecture Overview
+
+```mermaid
+graph LR
+    Client(["💻 Client"])
+
+    subgraph App ["Spring WebFlux App :8080"]
+        Router["PersonRouter\n(RouterFunction)"]
+        Actuator["Actuator\n/health, /prometheus"]
+    end
+
+    subgraph Data ["Data"]
+        Repo[("PersonRepository\nIn-Memory")]
+    end
+
+    subgraph Observability ["Observability"]
+        OTel["OpenTelemetry\nW3C traceparent/baggage"]
+    end
+
+    Client <-->|"HTTP GET /persons (JSON)"| Router
+    Client -->|"HTTP /actuator/**"| Actuator
+    Router <-->|"Flux<Person>"| Repo
+    Router -.->|"spans + MDC"| OTel
+    Actuator -.-> OTel
+```
+
+## Build & Test
+
+```bash
+./mvnw clean verify          # format check, unit (*Test) + IT (*IT) tests, JaCoCo, Helm lint/template
+./mvnw clean install         # verify + local Docker image + Helm package (target/helm/repo/)
+./mvnw test                  # unit tests only (surefire, *Test)
+./mvnw verify                # integration tests only (failsafe, *IT)
+./mvnw test -Dtest=PersonRepositoryImplTest             # single test class
+./mvnw test -Dtest=PersonRepositoryImplTest#findById    # single test method
+./mvnw spotless:apply        # auto-fix pom/markdown/json/yaml/shell formatting
+./mvnw spring-javaformat:apply                          # auto-fix Java code style
+```
+
+> Formatting is enforced at build time (`validate` phase). Run both `spotless:apply` and
+> `spring-javaformat:apply` before committing if the build fails there.
+
+## API
+
+| Method |          Path          |          Description          |
+|--------|------------------------|-------------------------------|
+| GET    | `/persons`             | all persons (in-memory)       |
+| GET    | `/actuator`            | Actuator endpoint index       |
+| GET    | `/actuator/health`     | health / readiness / liveness |
+| GET    | `/actuator/prometheus` | Prometheus metrics            |
+
+Local: http://localhost:8080 — Kubernetes (NodePort): http://node-ip:30080
+
+The `restRequest/` folder contains IntelliJ HTTP Client request files (`rest.http`,
+`actuator.http`), including `traceparent`/`baggage` headers for manual trace testing.
+
+## Running Locally
+
+```bash
+./mvnw spring-boot:run
+```
 
 ## Sandbox (local dev environment)
 
@@ -69,91 +135,52 @@ sbx kit add <sandbox-name> "git+https://github.com/dboeckli/opencode-sandbox-kit
 
 ## Kubernetes
 
-To run maven filtering for destination target/k8s and destination target/helm run:
+Deployment is Helm-only into the **`spring-6-reactive-examples`** namespace.
 
-```bash
-mvn clean install -DskipTests 
-```
+### Deploy with Helm
 
-### Deployment with Helm
-
-Be aware that we are using a different namespace here (not default)
-
-Go to the directory where the tgz file has been created after 'mvn install'
+After `./mvnw clean install`, the packaged chart is placed in `target/helm/repo/`.
 
 ```powershell
 cd target/helm/repo
-```
 
-unpack
-
-```powershell
-$file = Get-ChildItem -Filter spring-6-reactive-examples-v*.tgz | Select-Object -First 1
+$file = Get-ChildItem -Filter spring-6-reactive-examples-chart-*.tgz | Select-Object -First 1
 tar -xvf $file.Name
-```
 
-install
-
-```powershell
 $APPLICATION_NAME = Get-ChildItem -Directory | Where-Object { $_.LastWriteTime -ge $file.LastWriteTime } | Select-Object -ExpandProperty Name
 helm upgrade --install $APPLICATION_NAME ./$APPLICATION_NAME --namespace spring-6-reactive-examples --create-namespace --wait --timeout 5m --debug --render-subchart-notes
 ```
 
-show logs and show event
+### Helm Operations
 
 ```powershell
+# List pods
 kubectl get pods -n spring-6-reactive-examples
-```
 
-replace $POD with pods from the command above
-
-```powershell
+# Logs (replace $POD with a pod name from the command above)
 kubectl logs $POD -n spring-6-reactive-examples --all-containers
-```
 
-Show Details and Event
-
-$POD_NAME can be: spring-6-reactive-examples-mongodb, spring-6-reactive-examples
-
-```powershell
+# Describe a pod ($POD_NAME: spring-6-reactive-examples)
 kubectl describe pod $POD_NAME -n spring-6-reactive-examples
-```
 
-Show Endpoints
-
-```powershell
+# Show endpoints
 kubectl get endpoints -n spring-6-reactive-examples
-```
 
-test
-
-```powershell
-helm test $APPLICATION_NAME --namespace spring-6-reactive-examples --logs
-```
-
-status
-
-```powershell
-helm status $APPLICATION_NAME --namespace spring-6-reactive-examples
-```
-
-uninstall
-
-```powershell
+# Helm status / test / uninstall
+helm status    $APPLICATION_NAME --namespace spring-6-reactive-examples
+helm test      $APPLICATION_NAME --namespace spring-6-reactive-examples --logs
 helm uninstall $APPLICATION_NAME --namespace spring-6-reactive-examples
-```
 
-delete all
-
-```powershell
+# Remove all resources in the namespace
 kubectl delete all --all -n spring-6-reactive-examples
 ```
 
-create busybox sidecar
+### Debugging in Kubernetes
+
+Spawn a temporary BusyBox shell for in-cluster diagnostics:
 
 ```powershell
 kubectl run busybox-test --rm -it --image=busybox:1.36 --namespace=spring-6-reactive-examples --command -- sh
 ```
 
-You can use the actuator rest call to verify via port 30087
-
+Use the actuator endpoint to verify the application is healthy via NodePort **30080**.

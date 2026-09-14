@@ -1,3 +1,6 @@
 ### get persons
+< scripts/traceparent.js
 GET http://localhost:{{application-port}}/persons
 Accept: application/json
+traceparent: 00-{{traceId}}-{{spanId}}-03
+baggage: testBaggage=spring-6-reactive-examples
