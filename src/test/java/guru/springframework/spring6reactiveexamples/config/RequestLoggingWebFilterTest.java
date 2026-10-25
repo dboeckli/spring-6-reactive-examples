@@ -35,7 +35,7 @@ class RequestLoggingWebFilterTest {
 		appender = new ListAppender<>();
 		appender.start();
 		logger.addAppender(appender);
-		filter = new RequestLoggingWebFilter();
+		filter = new RequestLoggingWebFilter(List.of());
 	}
 
 	@AfterEach
@@ -86,6 +86,16 @@ class RequestLoggingWebFilterTest {
 
 		String payloadLog = messages().stream().filter(msg -> msg.startsWith("Payload: ")).findFirst().orElseThrow();
 		assertThat(payloadLog).hasSize("Payload: ".length() + 10000);
+	}
+
+	@Test
+	void doesNotLogExcludedPath() {
+		filter = new RequestLoggingWebFilter(List.of("/actuator/health"));
+		WebTestClient client = client();
+
+		client.get().uri("/actuator/health").exchange().expectStatus().isOk();
+
+		assertThat(messages()).isEmpty();
 	}
 
 	@Test
