@@ -98,6 +98,14 @@ management:
       export:
         enabled: false
 
+appconfig:
+  request-logging:
+    # set to false to remove the request logging filter from the web filter chain
+    enabled: true
+    # request URI prefixes that are not logged
+    exclude-paths:
+      - /actuator/health
+
 logging:
   level:
     guru.springframework.spring6reactiveexamples.config.RequestLoggingWebFilter: DEBUG

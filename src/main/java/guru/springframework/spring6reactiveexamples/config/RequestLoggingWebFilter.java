@@ -7,7 +7,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
@@ -15,20 +14,33 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.stream.Collectors;
 
-@Component
 @Slf4j
 public class RequestLoggingWebFilter implements WebFilter {
 
 	private static final int MAX_PAYLOAD_LENGTH = 10000;
 
+	private final List<String> excludePaths;
+
+	public RequestLoggingWebFilter(List<String> excludePaths) {
+		this.excludePaths = excludePaths;
+	}
+
+	static boolean isExcluded(String path, List<String> excludePaths) {
+		if (path == null || excludePaths == null || excludePaths.isEmpty()) {
+			return false;
+		}
+		return excludePaths.stream().anyMatch(p -> path.equals(p) || path.startsWith(p + "/"));
+	}
+
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-		if (!log.isDebugEnabled()) {
+		ServerHttpRequest request = exchange.getRequest();
+		if (!log.isDebugEnabled() || isExcluded(request.getURI().getPath(), excludePaths)) {
 			return chain.filter(exchange);
 		}
-		ServerHttpRequest request = exchange.getRequest();
 		log.debug("Before request [{} {}] headers=[{}]", request.getMethod(), request.getURI(),
 				formatHeaders(request.getHeaders()));
 		return chain.filter(exchange.mutate().request(createRequestDecorator(exchange)).build()).doFinally(signal -> {
